@@ -1,0 +1,48 @@
+#!/bin/bash
+
+nid=`echo $1 | awk -F '/' '{print $1}'`
+cidr=`echo $1 | awk -F '/' '{print $2}'`
+req_sub=$2
+
+arr[1]=0
+i=0
+ptr=1
+size=0
+
+while [ $ptr -lt $req_sub ]
+do
+        size=${#arr[@]}
+        temp=${arr[1]}
+        i=1
+
+        while [ $i -lt $size ]
+        do
+                arr[$i]=${arr[$i+1]}
+                i=$((i + 1))
+        done
+
+        temp1=$((temp +1))
+        arr[$size]=$temp1
+        arr[$size + 1]=$temp1
+        ptr=$(( ptr + 1 ))
+done
+
+#echo ${arr[@]}
+
+for (( j=1; j<=$2; j++))
+do
+        three_octets=`echo "$nid" | cut -f1-3 -d '.'`
+        temp=${arr[$j]}
+        fourth=`echo $nid | cut -f 4 -d '.'`
+
+        subnet=$((cidr + temp))
+        hosts=$(( 2 ** ( 32 - subnet ) - 3 ))
+        broadcast=$(( fourth + hosts + 2))
+        start="$three_octets.$(( fourth + 2 ))"
+        gateway="$three_octets.$((fourth + 1 ))"
+        end="$three_octets.$(( broadcast -1 ))"
+
+        echo "Network:$nid/$subnet - Net ID:$nid - Starting IP:$start - End IP:$end Broadcast:$three_octets.$broadcast Gateway=$gateway Hosts:$hosts"
+
+        nid="$three_octets.$(( fourth + hosts + 3 ))"
+done
