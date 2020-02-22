@@ -1,0 +1,76 @@
+# This synthetic monitoring script is used to test Account Recovery. We are using a special test account which
+# contains special test attributes, one of these attributes allows us to use a set One-Time-Passcode ( OTP ).
+# This script will attempt to complete the Account Recovery flow, if it succeeds it will also verify that the
+# address stored in Account Manager is correct which implicitly verifies connectivity to Identity-Data-Exchange
+# ( IDX ).
+#
+# Reference: How to create a special test user
+# https://accounts-e2e.intuit.com/signup.html?iamtest=true&test_attr=mfa_pass,otp_123456
+
+from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from time import sleep
+
+# ------------------------------------------------------------------------------
+#                                  CONSTANTS
+# ------------------------------------------------------------------------------
+
+TIMEOUT 	= 25
+SIGN_IN_URL = 'https://accounts-tax.intuit.com/index.html?iux_recaptcha_disable=true'
+EMAIL 		= 'iux_synthetic_account_recovery@blackhole.intuit.com'
+OTP 		= '123456'
+PASSWORD 	= 'Intuit01!'
+
+# ------------------------------------------------------------------------------
+#                                UTILITY METHODS
+# ------------------------------------------------------------------------------
+
+def wait_for_element(id):
+    return WebDriverWait(driver, TIMEOUT).until(lambda driver: driver.find_element_by_id(id))
+
+def wait_for_element_text_not_empty(selector):
+    return WebDriverWait(driver, TIMEOUT).until(lambda driver: driver.find_elements_by_css_selector(selector)[0].text )
+
+# ------------------------------------------------------------------------------
+#                                SCRIPT LOGIC
+# ------------------------------------------------------------------------------
+
+# Tests Account Recovery
+#
+# 1. Click "I forgot my user ID or password"
+# 2. Input Email
+# 3. Click "Continue" to get a OTP Code sent to Email
+# 4. Input OTP Code ( Which we have because this is a special test account )
+# 5. Reset Password
+try:
+    driver.get(SIGN_IN_URL)
+    assert 'Intuit Accounts' in driver.title
+    
+    # Click "I forgot my user ID or password"
+    wait_for_element('ius-link-account-recovery').click()
+    
+    sleep(1)
+    # Input Email
+    wait_for_element('ius-username').send_keys(EMAIL)
+    
+    # Click "Continue" to get a OTP Code sent to Email
+    #wait_for_element('ius-collect-username-submit-btn').click()
+
+    #Sleep for a time between create/verify OTP
+    #sleep(5)
+    
+    # Input OTP Code ( Which we have because this is a special test account )
+    #wait_for_element_text_not_empty('#ius-recovery-options-header')
+    #wait_for_element('ius-masked-email').click()
+    #wait_for_element('ius-recovery-options-submit-btn').click()
+    #wait_for_element('ius-confirm-code').send_keys(OTP)
+    #wait_for_element('ius-otp-submit-btn').click()
+
+    # Update password
+    #wait_for_element_text_not_empty('#ius-choose-new-password-header')
+    #wait_for_element('ius-new-password').send_keys(PASSWORD)
+    #wait_for_element('ius-confirm-new-password').send_keys(PASSWORD)
+    #wait_for_element('ius-choose-new-password-submit-btn').click()
+finally:
+    # Clean up
+    driver.close()
